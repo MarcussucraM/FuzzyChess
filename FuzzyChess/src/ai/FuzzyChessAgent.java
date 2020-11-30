@@ -101,6 +101,7 @@ public class FuzzyChessAgent implements Runnable {
 		this.engine = engine;
 		moves = new ArrayList<BoardPosition>();
 		currentMoveIndex = -1;
+		this.difficulty = difficulty;
 	}
 
 	//actuators to manipulate the state of the game and the display
