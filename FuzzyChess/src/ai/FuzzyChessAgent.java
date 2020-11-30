@@ -111,7 +111,7 @@ public class FuzzyChessAgent implements Runnable {
 			engine.endTurn();
 		}
 		else {
-			System.out.println("Clicking location" + moves.get(currentMoveIndex));
+			//System.out.println("Clicking location" + moves.get(currentMoveIndex));
 			if(currentMoveIndex % 2 == 0) {
 				engine.getGame().selectPiece(moves.get(currentMoveIndex));
 			}
@@ -157,11 +157,11 @@ public class FuzzyChessAgent implements Runnable {
 				selectedPosition = availablePieces.get((int)(Math.random() * 100) % availablePieces.size());
 				environment.selectPiece(selectedPosition);
 				//need to make sure it can actually move/capture
-				System.out.println("Selected Piece " + environment.getSelectedPiece());
+				//System.out.println("Selected Piece " + environment.getSelectedPiece());
 				availableMoves = environment.getAllMoves();
 				//bug here perchance
 				if(availableMoves.size() > 0) { //make a move
-					System.out.println(availableMoves);
+					//System.out.println(availableMoves);
 					moveToPosition = availableMoves.get((int)(Math.random() * 100) % availableMoves.size());
 					if(environment.makeMove(moveToPosition)) {
 						environment.endSubturn();
@@ -174,8 +174,8 @@ public class FuzzyChessAgent implements Runnable {
 			randomMoves.add(selectedPosition);
 			randomMoves.add(moveToPosition);
 		}
-		System.out.println("Moves to be made...");
-		System.out.println(randomMoves);
+		//System.out.println("Moves to be made...");
+		//System.out.println(randomMoves);
 		return randomMoves;
 	}
 	
@@ -225,7 +225,7 @@ public class FuzzyChessAgent implements Runnable {
 	//this is really ugly but maybe it works....
 	private ArrayList<ArrayList<BoardPosition>> generateTopMoves(FuzzyChess state, int factor){
 		int topX = factor;
-		System.out.println(factor);
+		//System.out.println(factor);
 		ArrayList<ArrayList<BoardPosition>> topMoves = new ArrayList<ArrayList<BoardPosition>>();
 		ArrayList<BoardPosition[]> topSubTurn1Moves = topXMoves(state, topX);
 		
@@ -385,7 +385,7 @@ public class FuzzyChessAgent implements Runnable {
 					}
 					if(ChessPiece.isBlack(pieceID)) {
 						if(boardState[i][j] == 'R') {
-							System.out.println("ROOK IN RANGE");
+							//System.out.println("ROOK IN RANGE");
 							resultScore -= getPieceScore(boardState[i][j]) * 3;
 						}
 					}
@@ -408,9 +408,9 @@ public class FuzzyChessAgent implements Runnable {
 					}
 					if(ChessPiece.isBlack(pieceID)) {
 						if(ChessPiece.isWhite(boardState[i][j]) && boardState[i][j] != 'R' && boardState[i][j] != 'K') {
-							System.out.println(boardState[i][j] + " IN RANGE");
+							//System.out.println(boardState[i][j] + " IN RANGE");
 							resultScore -= getPieceScore(boardState[i][j]);
-							System.out.println(resultScore);
+							//System.out.println(resultScore);
 						}						
 					}
 				}
