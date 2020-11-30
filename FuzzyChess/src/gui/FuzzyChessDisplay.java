@@ -1,5 +1,6 @@
 package gui;
 import java.awt.*;
+
 import javax.swing.*;
 
 import fireworks.FireworksPanel;
@@ -12,13 +13,15 @@ public class FuzzyChessDisplay {
 	private CapturePanel capturePanel2;
 	private GamePanel gamePanel;
 	private AttackPanel attackPanel;
-	private FireworksPanel winScreen;
+	private JPanel winScreen;
 	private RulesPanel helpScreen;
-	
-	private JMenuItem newGameMenuItem;
+
 	private JMenuItem howToPlayMenuItem;
 	private JCheckBoxMenuItem devModeMenuItem;
-	private JMenuItem defaultStyleMenuItem;
+	private JMenuItem hardMenuItem;
+	private JMenuItem medMenuItem;
+	private JMenuItem easyMenuItem;
+	private JMenuItem veryEasyMenuItem;
 
 	
 	public FuzzyChessDisplay() {
@@ -51,16 +54,24 @@ public class FuzzyChessDisplay {
 	public void initMenu() {
 		JMenuBar menubar = new JMenuBar();
 		JMenu game = new JMenu("Game");
-		JMenu styles = new JMenu("Styles");
-		newGameMenuItem = new JMenuItem("New Game");
+		
+		JMenu newGame = new JMenu("New Game");
+		veryEasyMenuItem = new JMenuItem("Very Easy");
+		easyMenuItem = new JMenuItem("Easy");
+		medMenuItem = new JMenuItem("Medium");
+		hardMenuItem = new JMenuItem("Hard");
+		
 		howToPlayMenuItem = new JMenuItem("How to Play");
-		devModeMenuItem = new JCheckBoxMenuItem("Developer Mode"); //will enable user to ignore game rules to test game functions - like win state/etc
-		defaultStyleMenuItem = new JMenuItem("Default");
-				
-		game.add(newGameMenuItem);
+		//will enable user to ignore game rules to test game functions - like win state/etc
+		devModeMenuItem = new JCheckBoxMenuItem("Developer Mode"); 
+		
+		game.add(newGame);
+		newGame.add(veryEasyMenuItem);
+		newGame.add(easyMenuItem);
+		newGame.add(medMenuItem);
+		newGame.add(hardMenuItem);
+		
 		game.add(howToPlayMenuItem);
-		game.add(styles);
-		styles.add(defaultStyleMenuItem);
 		game.add(devModeMenuItem);
 		menubar.add(game);
 		display.setJMenuBar(menubar);
@@ -69,29 +80,39 @@ public class FuzzyChessDisplay {
 	public void displayHelpScreen() {
 		if(gamePanel != null) {
 			display.getContentPane().remove(gamePanel);
-			helpScreen = new RulesPanel();
-			helpScreen.setResources(resources);
-			display.add(helpScreen, BorderLayout.CENTER);
-			display.validate();
-			statusPanel.getEndTurnButton().setEnabled(false);
+			display.revalidate();
+		} if(winScreen != null) {
+			display.getContentPane().remove(winScreen);
+			display.revalidate();
+			winScreen = null;
 		}
+		helpScreen = new RulesPanel(this);
+		helpScreen.setResources(resources);
+		display.add(helpScreen, BorderLayout.CENTER);
+		display.validate();
+		statusPanel.getEndTurnButton().setEnabled(false);
+		statusPanel.getEndSubTurnButton().setEnabled(false);
 	}
 	
-	public void displayWinScreen() {
+	public void displayWinScreen(int turn) {
 		if(gamePanel != null) {
 			display.getContentPane().remove(gamePanel);
 			display.revalidate();
-			winScreen = new FireworksPanel();
+			if(turn == 0) {
+				winScreen = new GameOverPanel(true);
+			} else {
+				winScreen = new GameOverPanel(false);	
+			}
 			display.add(winScreen, BorderLayout.CENTER);
 			display.validate();
-			winScreen.startFireworks();
+			
 			statusPanel.getEndTurnButton().setEnabled(false);
+			statusPanel.getEndSubTurnButton().setEnabled(false);
 		}
 	}
 	
 	public void reset() {
 		if(winScreen != null) {
-			winScreen.stopFireworks();
 			display.getContentPane().remove(winScreen);
 			display.revalidate();
 			winScreen = null;
@@ -104,6 +125,8 @@ public class FuzzyChessDisplay {
 		display.getContentPane().add(gamePanel);
 		display.validate();
 		statusPanel.getEndTurnButton().setEnabled(true);
+		statusPanel.getEndSubTurnButton().setEnabled(true);
+		display.repaint();
 	}
 	
 	public StatusPanel getStatusPanel() {
@@ -126,8 +149,20 @@ public class FuzzyChessDisplay {
 		return attackPanel;
 	}
 	
-	public JMenuItem getNewGameMenuItem() {
-		return newGameMenuItem;
+	public JMenuItem getVeryEasyMenuItem() {
+		return veryEasyMenuItem;
+	}
+	
+	public JMenuItem getEasyMenuItem() {
+		return easyMenuItem;
+	}
+	
+	public JMenuItem getMedMenuItem() {
+		return medMenuItem;
+	}
+	
+	public JMenuItem getHardMenuItem() {
+		return hardMenuItem;
 	}
 	
 	public JMenuItem getHowToPlayMenuItem() {

@@ -9,7 +9,7 @@ public class ChessPiece {
 	private int direction;
 	
 	/*							king	queen	knight	bishop	rook	pawn */
-	private int[][][] rolls = {{{4,5,6},{4,5,6},{4,5,6},{4,5,6},{5,6},{1,2,3,4,5,6}}, 
+	private static int[][][] rolls = {{{4,5,6},{4,5,6},{4,5,6},{4,5,6},{5,6},{1,2,3,4,5,6}}, 
 							   {{4,5,6},{4,5,6},{4,5,6},{4,5,6},{5,6},{2,3,4,5,6}},
 							   {{6},{6},{4,5,6},{4,5,6},{5,6},{2,3,4,5,6}},
 							   {{5,6},{5,6},{5,6},{4,5,6},{5,6},{3,4,5,6}},
@@ -24,6 +24,13 @@ public class ChessPiece {
 		pieceID = id;
 		direction = dir;
 		hasMoved = false;
+	}
+	
+	private ChessPiece(BoardPosition pos, char id, int dir, boolean hasMoved) {
+		position = pos;
+		pieceID = id;
+		direction = dir;
+		this.hasMoved = hasMoved;
 	}
 	
 	private String getName() {
@@ -57,8 +64,8 @@ public class ChessPiece {
 		}
 	}
 	
-	private int convertIDtoArrayPosition() {
-		switch(pieceID) {
+	private static int convertIDtoArrayPosition(char id) {
+		switch(id) {
 		case 'k':
 		case 'K':
 			return 0;
@@ -100,7 +107,20 @@ public class ChessPiece {
 	}
 
 	public int[] getRolls(ChessPiece other) {
-		return rolls[convertIDtoArrayPosition()][other.convertIDtoArrayPosition()];
+		return rolls[convertIDtoArrayPosition(pieceID)][convertIDtoArrayPosition(other.getid())];
+	}
+	
+	public static double getChanceOfCapture(char id1, char id2) {
+		double result = rolls[convertIDtoArrayPosition(id1)][convertIDtoArrayPosition(id2)].length/6.0;
+		return result;
+	}
+	
+	public static boolean isWhite(char pieceID) {
+		return pieceID == 'P' || pieceID == 'N' || pieceID == 'R' || pieceID == 'B' || pieceID == 'Q' || pieceID == 'K';
+	}
+	
+	public static boolean isBlack(char pieceID) {
+		return pieceID == 'p' || pieceID == 'n' || pieceID == 'r' || pieceID == 'b' || pieceID == 'q' || pieceID == 'k';
 	}
 	
 	
@@ -166,7 +186,7 @@ public class ChessPiece {
 	}
 	
 	public ChessPiece copy() {
-		return new ChessPiece(new BoardPosition(position.getX(), position.getY()), pieceID, direction);
+		return new ChessPiece(new BoardPosition(position.getX(), position.getY()), pieceID, direction, hasMoved);
 	}
 	
 	@Override

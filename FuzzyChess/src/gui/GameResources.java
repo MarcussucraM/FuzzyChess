@@ -22,6 +22,8 @@ public class GameResources{
 	private Color activeColor;
 	private Color moveSpaceColor;
 	private Color captureSpaceColor;
+	private ArrayList<ArrayList<BufferedImage>> blackChessSpriteList;
+	private ArrayList<ArrayList<BufferedImage>> whiteChessSpriteList;
 	private ArrayList<BufferedImage> blackChessSprites;
 	private ArrayList<BufferedImage> whiteChessSprites;
 	private ArrayList<BufferedImage> diceSprites;
@@ -40,8 +42,7 @@ public class GameResources{
 		moveSpaceColor = Color.BLUE;
 		captureSpaceColor = Color.RED;
 		
-		loadSprites();
-		loadRulesImages();
+		loadDefaultSprites();
 	}
 	
 	//can add more methods for more themes ===
@@ -51,7 +52,7 @@ public class GameResources{
 	}
 	
 	//this method will change once i start using other sprite sheet
-	private void loadSprites() {
+	private void loadDefaultSprites() {
 		BufferedImage spritesheet = null;
 		whiteChessSprites = new ArrayList<BufferedImage>();
 		blackChessSprites = new ArrayList<BufferedImage>();
@@ -68,16 +69,6 @@ public class GameResources{
 						diceSprites.add(spritesheet.getSubimage(j * 45, i * 45, 45, 45));
 				}
 			}
-		} catch (IOException e) {
-			System.out.println("Error - Images failed to load");
-		}
-	}
-	
-	private void loadRulesImages() {
-		rulesImages = new ArrayList<BufferedImage>();
-		try {
-			rulesImages.add(ImageIO.read(new File("resources/movement.png")));
-			rulesImages.add(ImageIO.read(new File("resources/rolls.png")));
 		} catch (IOException e) {
 			System.out.println("Error - Images failed to load");
 		}
@@ -141,6 +132,11 @@ public class GameResources{
 	
 	public ArrayList<BufferedImage> getRulesImages(){
 		return rulesImages;
+	}
+	
+	public void setSpriteStyle(int type) {
+		blackChessSprites = blackChessSpriteList.get(type);
+		whiteChessSprites = whiteChessSpriteList.get(type);
 	}
 	
 	public BufferedImage getChessSprite(char pieceID) {

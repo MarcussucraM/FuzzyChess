@@ -5,11 +5,14 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 import engine.FuzzyChessEngine;
 
@@ -22,9 +25,9 @@ public class AttackPanel extends JPanel implements Runnable{
 	private JLabel attackerLabel;
 	private JLabel defenderLabel;
 	private JLabel rollsNeededLabel;
-	public Thread diceRoller;
+	private Thread diceRoller;
+	private Timer thinkingAnimator;
 	private String captureResult;
-	private String rollsNeeded;
 	private int lastRoll;
 	//callback to engine to update game after dice roll animation
 	private FuzzyChessEngine callback;
@@ -38,7 +41,6 @@ public class AttackPanel extends JPanel implements Runnable{
 		//setLayout(new FlowLayout());
 		rollsNeededLabel = new JLabel(" ");
 		rollsNeededLabel.setHorizontalAlignment(JLabel.CENTER);
-		rollsNeededLabel.setVerticalAlignment(JLabel.CENTER);
 		attackerLabel = new JLabel("Attacker");
 		defenderLabel = new JLabel("Defender");
 		attackerPanel = new ImagePanel();
@@ -97,6 +99,29 @@ public class AttackPanel extends JPanel implements Runnable{
 		}
 	}
 	
+	public void startThinkingAnimation() {
+		if(thinkingAnimator == null) {
+			thinkingAnimator = new Timer(500, new ActionListener() {
+				int dotCount = 0;
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					dotCount = ++dotCount % 4;
+					String dots = "";
+					for(int i = 0; i < dotCount; i++) {
+						dots += ".";
+					}
+					setText("The enemy commanders are plotting your demise" + dots);
+				}
+			});
+			thinkingAnimator.start();
+		}
+	}
+	
+	public void stopThinkingAnimation() {
+		thinkingAnimator.stop();
+		thinkingAnimator = null;
+	}
+	
 	public void update(char attackerID, char defenderID) {
 		attackerPanel.setImage(resources.getChessSprite(attackerID));
 		defenderPanel.setImage(resources.getChessSprite(defenderID));
@@ -125,8 +150,13 @@ public class AttackPanel extends JPanel implements Runnable{
 	@Override
 	public void run() {
 		int frames = 15;
+		int lastImageID = 0;
 		for(int i = 1; i <= frames; i++) {
 			int nextImageID = i < frames ? (int)((Math.random() * 100) % 6) + 1 : lastRoll;
+			lastImageID = nextImageID;
+			while(lastImageID == nextImageID && i < frames) {
+				nextImageID = i < frames ? (int)((Math.random() * 100) % 6) + 1 : lastRoll;
+			}
 			dicePanel.setImage(resources.getDiceSprite(nextImageID));
 			dicePanel.repaint();
 			try {
@@ -144,5 +174,9 @@ public class AttackPanel extends JPanel implements Runnable{
 	
 	public void setCallBackRef(FuzzyChessEngine engine) {
 		callback = engine;
+	}
+	
+	public void setText(String text) {
+		rollsNeededLabel.setText(text);
 	}
 }

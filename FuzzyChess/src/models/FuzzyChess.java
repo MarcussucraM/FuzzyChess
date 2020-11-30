@@ -64,11 +64,13 @@ public class FuzzyChess {
 		dice.setSeed((long)Math.random() * 100000);
 		captureResult = "";
 		devMode = false;
-		board.updateBoardColors(getCurrentCorp().getActiveMemberPositions(), null, null);
+		board.updateBoardColors(getCurrentCorp().getActiveMemberPositions(), null, null, null, null);
 	}
 	
 	//for copying
-	private FuzzyChess(ArrayList<Corp> copiedP1Corps, ArrayList<Corp> copiedP2Corps, GameBoard copiedBoard, int t) {
+	private FuzzyChess(ChessPiece selCopy, ChessPiece selEnemy,
+			ArrayList<Corp> copiedP1Corps, ArrayList<Corp> copiedP2Corps, GameBoard copiedBoard,
+			ArrayList<BoardPosition> pm, ArrayList<BoardPosition> pc, int t, int st) {
 		gameOver = false;
 		board = copiedBoard;
 		p1_corps = copiedP1Corps;
@@ -76,16 +78,18 @@ public class FuzzyChess {
 		currentEnemyCorp = null;
 		p1_captures = new ArrayList<ChessPiece>();
 		p2_captures = new ArrayList<ChessPiece>();
+		possibleMoves = pm;
+		possibleCaptures = pc;
 		turn = t;
-		subturn = 0;
+		subturn = st;
 		maxSubTurns = 3;
-		selectedPiece = null;
-		selectedEnemy = null;
+		selectedPiece = selCopy;
+		selectedEnemy = selEnemy;
 		dice = new Random();
 		dice.setSeed((long)Math.random() * 100000);
 		captureResult = "";
 		devMode = false;
-		board.updateBoardColors(getCurrentCorp().getActiveMemberPositions(), null, null);
+		board.updateBoardColors(getCurrentCorp().getActiveMemberPositions(), null, null, null, null);
 	}
 
 	//corps grab pieces from the board
@@ -168,6 +172,26 @@ public class FuzzyChess {
 		}
 		return null;
 	}
+	
+	public ArrayList<ChessPiece> getLeaders(boolean isWhite) {
+		ArrayList<ChessPiece> leaders = new ArrayList<ChessPiece>();
+		if(isWhite) {
+			for(int i = 0; i < p1_corps.size(); i++) {
+				if(p1_corps.get(i).isActive()) {
+					leaders.add(p1_corps.get(i).getLeader());
+				}
+			}
+		}
+		else {
+			for(int i = 0; i < p2_corps.size(); i++) {
+				if(p2_corps.get(i).isActive()) {
+					leaders.add(p2_corps.get(i).getLeader());
+				}
+			}
+		}
+		
+		return leaders;
+	}
 
 	/*select for movement/capturing - update board colors when selected
 	* when a piece is selected its possible moves and possible captures
@@ -178,7 +202,8 @@ public class FuzzyChess {
 			if(selectedPiece != null) {
 				possibleMoves = getMovementPositions();
 				possibleCaptures = getCapturePositions();
-				board.updateBoardColors(getCurrentCorp().getActiveMemberPositions(), possibleMoves, possibleCaptures);
+				board.updateBoardColors(null, possibleMoves, possibleCaptures, selectedPiece.getPosition(), null);
+				//board.updateBoardColors(getCurrentCorp().getActiveMemberPositions(), possibleMoves, possibleCaptures);
 				return true;
 			}
 		}
@@ -193,9 +218,26 @@ public class FuzzyChess {
 		for(Corp enemyCorp : enemyCorps) {
 			currentEnemyCorp = enemyCorp;
 			selectedEnemy = enemyCorp.getMemberAt(selectedPosition);
-			if(selectedEnemy != null) return true;
+			if(selectedEnemy != null)
+				return true;
 		}
 		return false;
+	}
+	
+	//used by ai - assumes capture will always work
+	public void makeNaiveMove(BoardPosition newPosition) {
+		if(selectedPiece != null) {
+			BoardPosition oldPosition = new BoardPosition(selectedPiece.getPosition().getX(), selectedPiece.getPosition().getY());
+			if(possibleMoves.contains(newPosition)) {
+				movePiece(oldPosition, newPosition);
+			}
+			if(possibleCaptures.contains(newPosition)) {
+				selectEnemyPiece(newPosition);
+				movePiece(oldPosition, newPosition);
+			}
+		}
+		//board.updateBoardColors(getCurrentCorp().getActiveMemberPositions(), null, null);
+		selectedPiece.setHasMoved(true);
 	}
 	
 	public boolean makeMove(BoardPosition newPosition) {
@@ -215,7 +257,10 @@ public class FuzzyChess {
 				moveMade = true;
 			}
 		}
-		board.updateBoardColors(getCurrentCorp().getActiveMemberPositions(), null, null);
+		if(moveMade == false)
+			board.updateBoardColors(getCurrentCorp().getActiveMemberPositions(), null, null, null, null);
+		else
+			board.updateBoardColors(null, null, null, selectedPiece.getPosition(), selectedEnemy == null ? null : selectedEnemy.getPosition());
 		selectedPiece.setHasMoved(moveMade);
 		return moveMade;
 	}
@@ -369,7 +414,7 @@ public class FuzzyChess {
 	//update to add roll offset for knight
 	private boolean capturePiece() {
 		int[] neededRolls = selectedPiece.getRolls(selectedEnemy);
-		lastRoll = Math.abs((dice.nextInt() % 6) + 1);
+		lastRoll = (int)((Math.random() * 100) % 6) + 1;
 		
 		//if its a knight - and the enemy position is not adjacent - subtract 1 from dice roll
 		if(selectedPiece.getid() == 'n' || selectedPiece.getid() == 'N') {
@@ -420,7 +465,7 @@ public class FuzzyChess {
 		for(Corp c : currentCorps) {
 			c.unfreezePieces();
 		}
-		board.updateBoardColors(getCurrentCorp().getActiveMemberPositions(), null, null);
+		board.updateBoardColors(getCurrentCorp().getActiveMemberPositions(), null, null, null, null);
 	}
 
 	public void endSubturn() {
@@ -431,10 +476,10 @@ public class FuzzyChess {
 				maxSubTurns--;
 		}
 		if(subturn++ < maxSubTurns-1) {
-			board.updateBoardColors(getCurrentCorp().getActiveMemberPositions(), null, null);
+			board.updateBoardColors(getCurrentCorp().getActiveMemberPositions(), null, null, null, null);
 		}
 		else{
-			board.updateBoardColors(null, null, null);
+			board.updateBoardColors(null, null, null, null, null);
 		}
 		
 	}
@@ -512,13 +557,46 @@ public class FuzzyChess {
 	//really just need the corps which keeps track
 	//of commanding forces, the gameboard, and the current turn
 	public FuzzyChess copy() {
-		ArrayList<Corp> copied_p1Corps = new ArrayList<Corp>();
-		ArrayList<Corp> copied_p2Corps = new ArrayList<Corp>();
+		ArrayList<Corp> copied_P1Corps = new ArrayList<Corp>();
+		ArrayList<Corp> copied_P2Corps = new ArrayList<Corp>();
+		ChessPiece selCopy = selectedPiece == null ? null : selectedPiece.copy();
+		ChessPiece selEnemy = selectedEnemy == null ? null : selectedEnemy.copy();
+		Corp copiedP1KingsCorp = p1_corps.get(0).copy();
+		Corp copiedP2KingsCorp = p2_corps.get(0).copy();
 		for(int i = 0; i < p1_corps.size(); i++) {
-			copied_p1Corps.add(p1_corps.get(i).copy());
-			copied_p2Corps.add(p2_corps.get(i).copy());
+			if(i == 0) {
+				copied_P1Corps.add(copiedP1KingsCorp);
+				copied_P2Corps.add(copiedP2KingsCorp);
+			}
+			else {
+				Corp copiedP1Corp = p1_corps.get(i).copy();
+				Corp copiedP2Corp = p2_corps.get(i).copy();
+				copiedP1Corp.setKingsCorp(copiedP1KingsCorp);
+				copiedP2Corp.setKingsCorp(copiedP2KingsCorp);
+				copied_P1Corps.add(copiedP1Corp);
+				copied_P2Corps.add(copiedP2Corp);
+			}
 		}
 		GameBoard copiedBoard = board.copy();
-		return new FuzzyChess(copied_p1Corps, copied_p2Corps, copiedBoard, turn);
+		return new FuzzyChess(selCopy, selEnemy, copied_P1Corps, copied_P2Corps, copiedBoard, possibleMoves, possibleCaptures, turn, subturn);
+	}
+	
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n");
+		sb.append(String.format("Turn: %d Subturn: %d", turn, subturn));
+		sb.append("Board\n"+board.toString());
+		sb.append("P1 CORPS\n");
+		for(int i = 0; i < p1_corps.size(); i++) {
+			sb.append(p1_corps.get(i).toString() + "\n");
+		}
+		
+		sb.append("P2 CORPS\n");
+		for(int i = 0; i < p2_corps.size(); i++) {
+			sb.append(p2_corps.get(i).toString() + "\n");
+		}
+		
+		sb.append("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n");
+		return sb.toString();
 	}
 }

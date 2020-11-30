@@ -28,11 +28,15 @@ public class Corp {
 		isActive = true;
 	}
 	
-	private Corp(ArrayList<ChessPiece> members, ChessPiece leader, Corp kingsCorp, boolean isActive) {
+	private Corp(ArrayList<ChessPiece> members, ChessPiece leader, boolean isActive) {
 		this.members = members;
 		this.leader = leader;
-		this.kingsCorp = kingsCorp;
+		this.kingsCorp = null;
 		this.isActive = isActive;
+	}
+	
+	public void setKingsCorp(Corp kc) {
+		this.kingsCorp = kc;
 	}
 	
 	public void addMember(ChessPiece member) {
@@ -89,8 +93,11 @@ public class Corp {
 		//if null then this is the kings corp
 		//otherwise king delegates all members besides himself to bishops
 		if(kingsCorp != null) {
-			totalMembers.addAll(kingsCorp.getActiveMembers());
-			totalMembers.remove(kingsCorp.getLeader());
+			for(int i = 0; i < kingsCorp.getActiveMembers().size(); i++) {
+				if(!kingsCorp.getActiveMembers().get(i).equals(kingsCorp.getLeader())){
+					totalMembers.add(kingsCorp.getActiveMembers().get(i));
+				}
+			}
 		}
 		return totalMembers;			
 	}
@@ -145,18 +152,14 @@ public class Corp {
 		return isActive;
 	}
 	
+	//Need to set copied kings corp over when copying fuzzychess object
 	public Corp copy() {
 		ArrayList<ChessPiece> copiedMembers = new ArrayList<ChessPiece>();
 		for(int i = 0; i < members.size(); i++) {
 			copiedMembers.add(members.get(i).copy());
 		}
 		ChessPiece copiedLeader = leader.copy();
-		Corp copiedKingsCorp;
-		if(kingsCorp != null)
-			copiedKingsCorp = kingsCorp.copy();
-		else
-			copiedKingsCorp = kingsCorp;
-		return new Corp(copiedMembers, copiedLeader, copiedKingsCorp, isActive);		
+		return new Corp(copiedMembers, copiedLeader, isActive);		
 	}
 	
 	public String toString() {

@@ -10,13 +10,14 @@ import java.awt.event.ActionListener;
 import java.util.LinkedList;
 import java.util.Random;
 
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-
+//class used for testing
 public class FireworksPanel extends JPanel implements ActionListener {
     private static final long serialVersionUID = 1266778429484392409L;
-    private LinkedList<Spark> sparks = new LinkedList<Spark>();
+    private Fireworks fireworks;
     private final Dimension MAX_DIMENSION = new Dimension(800, 800);
     private Random generator = new Random();
     
@@ -26,10 +27,11 @@ public class FireworksPanel extends JPanel implements ActionListener {
     public FireworksPanel() {
         this.setPreferredSize(MAX_DIMENSION);
         this.setLayout(null);
+        this.fireworks = new Fireworks(this);
 
         //for the actual explosions
         fireworksTimer = new Timer(15, this);
-        explosionTimer = new Timer(1000, this);      
+        explosionTimer = new Timer(1000, this);  
     }
     
     public void startFireworks() {
@@ -42,14 +44,6 @@ public class FireworksPanel extends JPanel implements ActionListener {
     	explosionTimer.stop();
     }
 
-    public int sparksLeft() {
-        return sparks.size();
-    }
-
-    public boolean removeSpark(Spark s) {
-        return this.sparks.remove(s);
-    }
-
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.setColor(Color.BLACK);
@@ -57,92 +51,33 @@ public class FireworksPanel extends JPanel implements ActionListener {
         g.fillRect(0, 0, clip.width, clip.height);
 
         Graphics2D g2d = (Graphics2D)g;
-        
-        g2d.setColor(Color.WHITE);
-        g2d.setFont(new Font("TimesRoman", Font.PLAIN, 45));
-        g2d.drawString("YOU WIN!", clip.width/2-100, clip.width/2);
 
-        Spark array[] = sparks.toArray(new Spark[0]);
+        Spark sparks[] = fireworks.getSparks();
 
-        for(Spark s : array) {
+        for(Spark s : sparks) {
             s.draw(g2d);
-        }
-    }
-
-    private void explode(int x, int y) {
-        int sparkCount = 50 + generator.nextInt(20);
-        Color c = new Color(generator.nextInt(255), generator.nextInt(255), generator.nextInt(255));
-        long lifespan = 1000 + generator.nextInt(1000);
-
-        int choice = generator.nextInt(100);
-
-        if (choice < 20) {
-            createCircleSpark(x, y, sparkCount, c, lifespan);
-        } else if (choice < 40) {
-            createPerfectCircleSpark(x, y, sparkCount, c, lifespan);
-        } else if (choice < 60) {
-            createMovingSpark(x, y, sparkCount, c, lifespan);
-        } else if (choice < 80) {
-            createBubbleSpark(x, y, sparkCount, c, lifespan);
-        } else {
-            createTrigSpark(x, y, sparkCount, c, lifespan);
-        }
-    }
-
-    private void createCircleSpark(int x, int y, int sparkCount, Color c, long lifespan) {
-        for (int i = 0; i < sparkCount; i++) {
-            double direction = 360 * generator.nextDouble();
-            double speed = 10 * generator.nextDouble() + 5;
-            sparks.addLast(new CircleSpark(this, direction, x, y, c, lifespan, speed));
-        }
-    }
-
-    private void createPerfectCircleSpark(int x, int y, int sparkCount, Color c, long lifespan) {
-        sparkCount *= 2;
-
-        lifespan /= 2;
-
-        double speed = 20 * generator.nextDouble() + 5;
-
-        for (int i = 0; i < sparkCount; i++) {
-            double direction = 360 * generator.nextDouble();
-            sparks.addLast(new PerfectCircleSpark(this, direction, x, y, c, lifespan, speed));
-        }
-    }
-
-    private void createTrigSpark(int x, int y, int sparkCount, Color c, long lifespan) {
-        for (int i = 0; i < sparkCount; i++) {
-            double direction = 360 * generator.nextDouble();
-            double speed = 10 * generator.nextDouble() + 5;
-            sparks.addLast(new TrigSpark(this, direction, x, y, c, lifespan, speed));
-        }
-    }
-
-    private void createMovingSpark(int x, int y, int sparkCount, Color c, long lifespan) {
-        for (int i = 0; i < sparkCount; i++) {
-            double direction = 360 * generator.nextDouble();
-            double speed = 10 * generator.nextDouble() + 5;
-            sparks.addLast(new MovingSpark(this, direction, x, y, c, lifespan, speed));
-        }
-    }
-
-    private void createBubbleSpark(int x, int y, int sparkCount, Color c, long lifespan) {
-        for (int i = 0; i < sparkCount; i++) {
-            double direction = 360 * generator.nextDouble();
-            double speed = 10 * generator.nextDouble() + 5;
-            sparks.addLast(new BubbleSpark(this, direction, x, y, c, lifespan, speed));
         }
     }
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == fireworksTimer) {
-			if(sparksLeft() > 0) {
+			if(fireworks.sparksLeft() > 0) {
                 repaint();
 			}
 		}
 		else if(e.getSource() == explosionTimer) {
-			explode(generator.nextInt(400)+200, generator.nextInt(400)+200);
+			fireworks.explode(generator.nextInt(400)+200, generator.nextInt(400)+200);
 		}
+	}
+	
+	public static void main(String[] args) {
+		JFrame frame = new JFrame();
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setVisible(true);
+		FireworksPanel f = new FireworksPanel();
+		frame.add(f);
+		frame.pack();
+		f.startFireworks();
 	}
 }

@@ -19,11 +19,11 @@ public class BubbleSpark implements Spark {
     private double y;
 
     private Ellipse2D.Double spark;
-    private FireworksPanel parent;
+    private Fireworks parent;
 
     private long LIFESPAN;
 
-    public BubbleSpark(FireworksPanel parent, double direction, double x, double y, Color c, long LIFESPAN, double MAX_SPEED) {
+    public BubbleSpark(Fireworks parent, double direction, double x, double y, Color c, long LIFESPAN, double MAX_SPEED) {
         this.direction = direction;
         this.parent = parent;
         this.c = c;
@@ -65,7 +65,7 @@ public class BubbleSpark implements Spark {
             spark.width  = MAX_DIAMETER * shrink;
         } else {
             if (parent.sparksLeft() == 1) {
-                parent.repaint();
+            	//parent.getCanvas().repaint();
             }
             parent.removeSpark(this);
         }

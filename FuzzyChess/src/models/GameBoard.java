@@ -48,7 +48,8 @@ public class GameBoard{
 	//what piece is selected
 	//what available moves and captures are
 	//available to the piece
-	public void updateBoardColors(ArrayList<BoardPosition> activeCorps, ArrayList<BoardPosition> movements, ArrayList<BoardPosition> captures) {
+	public void updateBoardColors(ArrayList<BoardPosition> activeCorps, ArrayList<BoardPosition> movements, ArrayList<BoardPosition> captures,
+			BoardPosition selectedPosition, BoardPosition selectedEnemy) {
 		resetBoardColors();
 		if(activeCorps != null) {
 			for(BoardPosition p : activeCorps) {
@@ -66,6 +67,12 @@ public class GameBoard{
 			for(BoardPosition p : captures) {
 				boardColors[p.getY()][p.getX()] = 'c';
 			}
+		}
+		if(selectedPosition != null) {
+			boardColors[selectedPosition.getY()][selectedPosition.getX()] = 'a';
+		}
+		if(selectedEnemy != null) {
+			boardColors[selectedEnemy.getY()][selectedEnemy.getX()] = 'c';
 		}
 	}
 	

@@ -19,11 +19,11 @@ public class CircleSpark implements Spark {
     private double y;
 
     private Ellipse2D.Double spark;
-    private FireworksPanel parent;
+    private Fireworks parent;
 
     private long LIFESPAN;
 
-    public CircleSpark(FireworksPanel parent, double direction, double x, double y, Color c, long LIFESPAN, double MAX_SPEED) {
+    public CircleSpark(Fireworks parent, double direction, double x, double y, Color c, long LIFESPAN, double MAX_SPEED) {
         this.direction = direction;
         this.parent = parent;
         this.c = c;
@@ -65,7 +65,7 @@ public class CircleSpark implements Spark {
             spark.width  = MAX_DIAMETER * shrink;
         } else {
             if (parent.sparksLeft() == 1) {
-                parent.repaint();
+            	parent.getCanvas().repaint();
             }
             parent.removeSpark(this);
         }
@@ -85,7 +85,7 @@ public class CircleSpark implements Spark {
             Color newColor = new Color(c.getRed(), c.getGreen(), c.getBlue(), Math.min((int)Math.round(255 * (1/scale)), 255));
 
             g2d.setColor(newColor);
-            g2d.fill(at.createTransformedShape(spark));
+            //g2d.fill(at.createTransformedShape(spark));
         }
     }
 }

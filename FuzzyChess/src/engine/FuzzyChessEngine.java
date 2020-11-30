@@ -63,11 +63,10 @@ public class FuzzyChessEngine implements ActionListener{
 	
 	//not sure if I want this to be a thread or naw
 	public void startAITurn() {
-		//first let ai look at state of the game and decide what it wants to do
-		ai.evaluateTurn(game.copy(), FuzzyChessAgent.EASY_DIFFICULTY);
-		//start timers - when they activate then do the moves calculated
-		aiMoveTimer = new Timer(1000, this);
-		aiMoveTimer.start();
+		System.out.println("AI THINKING....");
+		display.getAttackPanel().setText("The enemy commanders are plotting your demise");
+		display.getAttackPanel().startThinkingAnimation();
+		ai.evaluateTurn(game.copy());
 	}
 	
 	public void startRollAnimation() {
@@ -86,6 +85,12 @@ public class FuzzyChessEngine implements ActionListener{
 		inAnimation = true;	
 	}
 	
+	public void endSubTurn() {
+		game.endSubturn();
+		game.resetSelectedPieces();
+		updateDisplay();
+	}
+	
 	public void endTurn() {
 		game.endTurn();
 		game.resetSelectedPieces();
@@ -98,9 +103,7 @@ public class FuzzyChessEngine implements ActionListener{
 		else {
 			aiTurn = false;
 			aiMoveTimer.stop();
-		}
-		
-		
+		}	
 	}
 	
 	//called by dice roll animation thread when finished
@@ -111,11 +114,19 @@ public class FuzzyChessEngine implements ActionListener{
 		game.resetSelectedPieces();
 	}
 	
+	public void aiReadyCallBack() {
+		display.getAttackPanel().stopThinkingAnimation();
+		display.getAttackPanel().setText("OK!");
+		if(aiMoveTimer == null) {
+			aiMoveTimer = new Timer(1000, this);
+		}
+		aiMoveTimer.start();
+	}
+	
 	public void updateDisplay() {
 		//status
 		display.getStatusPanel().setTurnText(game.getTurn());
 		display.getStatusPanel().setMoveText(game.getSubTurn() >= game.getMaxSubTurns() ? "End Turn" : "" + (game.getSubTurn()+1));
-		display.getStatusPanel().setButtonHighlight(game.getSubTurn() >= game.getMaxSubTurns());
 		//board
 		display.getGamePanel().updateBoard(game.getBoard().getBoardState(), game.getBoard().getBoardColors());
 		//captures
@@ -129,7 +140,11 @@ public class FuzzyChessEngine implements ActionListener{
 		display.getDevModeMenuItem().setSelected(game.isDevMode());
 		//endgame
 		if(game.isGameOver()) {
-			display.displayWinScreen();
+			if(aiMoveTimer.isRunning()) {
+				aiMoveTimer.stop();
+				//display lose screen
+			}
+			display.displayWinScreen(game.getTurn());
 		}
 	}
 	
@@ -141,14 +156,18 @@ public class FuzzyChessEngine implements ActionListener{
 			}
 		});
 		
-		display.getNewGameMenuItem().addActionListener(this);
+		display.getVeryEasyMenuItem().addActionListener(this);
+		display.getEasyMenuItem().addActionListener(this);
+		display.getMedMenuItem().addActionListener(this);
+		display.getHardMenuItem().addActionListener(this);
 		display.getDevModeMenuItem().addActionListener(this);
 		display.getHowToPlayMenuItem().addActionListener(this);
 		display.getStatusPanel().getEndTurnButton().addActionListener(this);
+		display.getStatusPanel().getEndSubTurnButton().addActionListener(this);
 	}
 	
 	public void registerAI() {
-		ai = new FuzzyChessAgent(this);
+		ai = new FuzzyChessAgent(this, FuzzyChessAgent.MED_DIFFICULTY);
 	}
 	
 	public void dealWithClick(MouseEvent e) {
@@ -156,18 +175,22 @@ public class FuzzyChessEngine implements ActionListener{
 			if(game.getTurn() == 0) {
 				getPlayerMove(BoardPosition.convert(e.getX(), e.getY()));
 			}
-			/*else if(game.getTurn() == 1) {
-				getPlayerMove(BoardPosition.convert(e.getX(), e.getY()));
-			}*/
 		}
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if(e.getSource() == display.getNewGameMenuItem()) {
-			game = new FuzzyChess();
-			display.reset();
-			updateDisplay();
+		if(e.getSource() == display.getVeryEasyMenuItem()) {
+			newGame(FuzzyChessAgent.VERY_EASY_DIFFICULTY);
+		}
+		else if(e.getSource() == display.getEasyMenuItem()) {
+			newGame(FuzzyChessAgent.EASY_DIFFICULTY);
+		}
+		else if(e.getSource() == display.getMedMenuItem()) {
+			newGame(FuzzyChessAgent.MED_DIFFICULTY);
+		}
+		else if(e.getSource() == display.getHardMenuItem()) {
+			newGame(FuzzyChessAgent.HARD_DIFFICULTY);
 		}
 		else if(e.getSource() == display.getHowToPlayMenuItem()) {
 			display.displayHelpScreen();
@@ -180,11 +203,23 @@ public class FuzzyChessEngine implements ActionListener{
 				ai.makeMove();
 			}
 		}
+		else if(e.getSource() == display.getStatusPanel().getEndSubTurnButton()) {
+			if(!inAnimation && !aiTurn) {
+				endSubTurn();
+			}
+		}
 		else if(e.getSource() == display.getStatusPanel().getEndTurnButton()) {
 			if(!inAnimation && !aiTurn) {
 				endTurn();
 			}
 		}
+	}
+	
+	public void newGame(int difficulty) {
+		game = new FuzzyChess();
+		ai = new FuzzyChessAgent(this, difficulty);
+		display.reset();
+		updateDisplay();
 	}
 	
 	public FuzzyChess getGame() {

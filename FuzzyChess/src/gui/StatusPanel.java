@@ -13,20 +13,20 @@ public class StatusPanel extends JPanel {
 	private JLabel turnLabel;
 	private JLabel moveLabel;
 	private JButton endTurnButton;
+	private JButton endSubTurnButton;
 	private GameResources resources;
 	
 	public StatusPanel() {
 		turnLabel = new JLabel("White's Turn");
 		moveLabel = new JLabel("Move: 1");
+		endSubTurnButton = new JButton("End Subturn");
 		endTurnButton = new JButton("End Turn");
 		
-		setLayout(new FlowLayout());
+		setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
 		add(turnLabel);
 		add(moveLabel);
+		add(endSubTurnButton);
 		add(endTurnButton);
-
-		turnLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 20));
-		moveLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 20));
 		setPreferredSize(new Dimension(1080,60));
 	}
 	
@@ -40,10 +40,13 @@ public class StatusPanel extends JPanel {
 		turnLabel.setFont(resources.getFontStyle());
 		moveLabel.setFont(resources.getFontStyle());
 		endTurnButton.setFont(resources.getFontStyle());
+		endSubTurnButton.setFont(resources.getFontStyle());
 	}
 	
 	private void updateColors() {
 		setBackground(resources.getBackgroundColor());
+		endSubTurnButton.setBackground(resources.getBackgroundColor());
+		endSubTurnButton.setForeground(resources.getForegroundColor());
 		endTurnButton.setBackground(resources.getBackgroundColor());
 		endTurnButton.setForeground(resources.getForegroundColor());
 		turnLabel.setForeground(resources.getForegroundColor());
@@ -60,11 +63,8 @@ public class StatusPanel extends JPanel {
 		moveLabel.setText(String.format("Move: %s", move));
 	}
 	
-	public void setButtonHighlight(boolean enabled) {
-		if(enabled) {
-			endTurnButton.requestFocusInWindow();
-		} else {
-		}
+	public JButton getEndSubTurnButton() {
+		return endSubTurnButton;
 	}
 	
 	public JButton getEndTurnButton() {
