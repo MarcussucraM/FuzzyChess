@@ -5,11 +5,9 @@ package models;
 
 import ai.TeamController;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Random;
+import java.sql.Array;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 /* FuzzyChess
@@ -20,23 +18,23 @@ import java.util.Random;
  */
 public class FuzzyChess {
 	private TeamController[] players;
-	private Corp currentEnemyCorp;
 	private GameBoard board;
+
+	private ChessPiece selectedPiece;
+	private ChessPiece selectedEnemy;
+	private List<BoardPosition> possibleMoves;
+	private List<BoardPosition> possibleCaptures;
+
+
 	private int turn;
 	private int subturn;
 	private boolean gameOver;
 
-	private ChessPiece selectedPiece;
-	private ChessPiece selectedEnemy;
-	private ArrayList<BoardPosition> possibleMoves;
-	private ArrayList<BoardPosition> possibleCaptures;
-
-	//use for capture panel display
 	private Random dice;
 	private boolean diceOffset;
 	private int lastRoll;
 	private String captureResult;
-	
+
 	//if enabled - all rolls = 6
 	private boolean devMode;
 
@@ -45,16 +43,13 @@ public class FuzzyChess {
 		gameOver = false;
 		board = new GameBoard();
 		initCorps();
-		currentEnemyCorp = null;
+		resetSelectedPiece();
+		updateBoard();
 		turn = 0;
 		subturn = 0;
-		selectedPiece = null;
-		selectedEnemy = null;
 		dice = new Random();
 		dice.setSeed((long)Math.random() * 100000);
-		captureResult = "";
 		devMode = false;
-		board.updateBoardColors(getCurrentCorp().getMemberPositions(), null, null);
 	}
 
 	//corps grab pieces from the board
@@ -72,7 +67,7 @@ public class FuzzyChess {
 			for (int j = 0; j < gameBoard[0].length; j++) {
 				char id = gameBoard[i][j];
 				BoardPosition curPosition = new BoardPosition(j, i);
-				
+
 				// kings corp
 				if (j >= 3 && j < 5) {
 					if (id == 'p') {
@@ -91,7 +86,7 @@ public class FuzzyChess {
 					ChessPiece piece = new ChessPiece(curPosition, id, ChessPiece.UP);
 					p1_king_corp.addMember(piece);
 				}
-				
+
 				// left bishop corp
 				if (j < 3) {
 					if (id == 'p' || id == 'b' || id == 'n') {
@@ -123,111 +118,130 @@ public class FuzzyChess {
 		players[1].getCorps().add(p2_lbishop_corp);
 		players[1].getCorps().add(p2_rbishop_corp);
 	}
-	
-	/* as of now - corps go in order
-	 * king - lbishop - rbishop */
+
 	public Corp getCurrentCorp() {
 		return players[turn].getCorps().get(subturn);
 	}
+	public void updateBoard(){
+		possibleCaptures = getCapturePositions(selectedPiece,peekNextPlayer());
+		possibleMoves = getMovementPositions(selectedPiece);
+		board.updateBoardColors(getCurrentCorp().getMemberPositions(), possibleMoves, possibleCaptures);
+	}
 
-	/*select for movement/capturing - update board colors when selected
-	* when a piece is selected its possible moves and possible captures
-	* are obtained for later when making a move*/
-	public boolean selectPiece(BoardPosition selectedPosition) {
-		if(board.isInBounds(selectedPosition)) {
-			selectedPiece = getCurrentCorp().getMemberAt(selectedPosition);			
-			if(selectedPiece != null) {
-				possibleMoves = board.getMovementPositions(selectedPiece);
-				possibleCaptures = board.getCapturePositions(selectedPiece,peekNextPlayer().getCorps());
-				board.updateBoardColors(getCurrentCorp().getMemberPositions(), possibleMoves, possibleCaptures);
-				return true;
-			}
-		}
-		return false;
+	private boolean selectPiece(BoardPosition position) {
+		selectedPiece = getCurrentCorp().getMemberAt(position);
+		updateBoard();
+		return selectedPiece != null;
 	}
-	
-	
-	/*gain reference to selectedEnemy and its corp so we can remove it if
-	 * successful roll for capture -- maybe get rid of --*/
-	private boolean selectEnemyPiece(BoardPosition selectedPosition) {
-		ArrayList<Corp> enemyCorps = peekNextPlayer().getCorps();
-		for(Corp enemyCorp : enemyCorps) {
-			//if corp is not active then its remaining pieces are in the kings corp..
-			if(!enemyCorp.isActive()) continue;
-			currentEnemyCorp = enemyCorp;
-			selectedEnemy = enemyCorp.getMemberAt(selectedPosition);
-			if(selectedEnemy != null) return true;
-		}
-		return false;
-	}
-	
-	public boolean makeMove(BoardPosition newPosition) {
-		// check to make sure there is a selected piece
-		boolean moveMade = false;
-		if(selectedPiece != null) {
-			BoardPosition oldPosition = new BoardPosition(selectedPiece.getPosition().getX(), selectedPiece.getPosition().getY());
-			if(possibleMoves.contains(newPosition)) {
-				movePiece(oldPosition, newPosition);
-				moveMade = true;
-			}
-			if(possibleCaptures.contains(newPosition)) {
-				selectEnemyPiece(newPosition);
-				if(capturePiece()) {
-					movePiece(oldPosition, newPosition);
-				}
-				moveMade = true;
-			}
-		}
-		board.updateBoardColors(getCurrentCorp().getMemberPositions(), null, null);
-		return moveMade;
-	}
-	
-	//resets the selected pieces in the game
-	//call if makeMove returns false
-	public void resetSelectedPieces() {
+	public void resetSelectedPiece(){
 		captureResult = "";
 		selectedPiece = null;
 		selectedEnemy = null;
+		possibleMoves = new ArrayList<>();
+		possibleCaptures = new ArrayList<>();
 	}
 
-	private void movePiece(BoardPosition oldPosition, BoardPosition newPosition) {
+	public boolean makeMove(BoardPosition position){
+		if(selectedPiece == null)
+			return selectPiece(position);
+
+		if(possibleMoves.contains(position))
+			return movePiece(selectedPiece.getPosition(),position);
+
+		if(possibleCaptures.contains(position)){
+			selectedEnemy = peekNextPlayer().getMemberAt(position);
+			if(capturePiece(selectedEnemy))
+				return movePiece(selectedPiece.getPosition(),position);
+			return false;
+		}
+		resetSelectedPiece();
+		updateBoard();
+		return false;
+	}
+
+	private boolean movePiece(BoardPosition oldPosition, BoardPosition newPosition) {
 		selectedPiece.setPosition(newPosition);
 		board.updateBoardState(oldPosition, newPosition);
-	}	
-	
-	//update to add roll offset for knight
-	private boolean capturePiece() {
-		int[] neededRolls = selectedPiece.getRolls(selectedEnemy);
+		return true;
+	}
+
+
+	private boolean capturePiece(ChessPiece enemy) {
+		int[] neededRolls = selectedPiece.getRolls(enemy);
 		lastRoll = Math.abs((dice.nextInt() % 6) + 1);
-		
-		//if its a knight - and the enemy position is not adjacent - subtract 1 from dice roll
+
 		if(selectedPiece.getid() == 'n' || selectedPiece.getid() == 'N') {
-			if(!selectedPiece.getActions().contains(selectedEnemy.getPosition())){
+			if(!selectedPiece.getActions(selectedPiece.getPosition(),1).contains(enemy.getPosition())){
 				System.out.println("Subtracting 1 from Knight Attack");
+				lastRoll = Math.min(1,lastRoll - 1);
 				diceOffset = true;
-				if(lastRoll != 1) //cant get less than 1
-					lastRoll -= 1;
 			}
 		}
-		
+
 		if(devMode)
 			lastRoll = 6;
-		
+
 		for(int x = 0; x < neededRolls.length; x++) {
 			if(neededRolls[x] == lastRoll) {
 				captureResult = "Won";
-				currentEnemyCorp.removeMember(selectedEnemy);
-				players[turn].getCaptures().add(selectedEnemy);
-				if(selectedEnemy.getid() == 'k' || selectedEnemy.getid() == 'K') {
+				peekNextPlayer().removeMember(enemy);
+				players[turn].getCaptures().add(enemy);
+				if(enemy.getid() == 'k' || enemy.getid() == 'K') {
 					gameOver = true;
 				}
 				return true;
-			}				
+			}
 		}
 		captureResult = "Lost";
 		return false;
 	}
-	
+
+
+	private class Node{
+		private int depth;
+		private BoardPosition current;
+
+		public Node(BoardPosition current,int depth){
+			this.current = current;
+			this.depth = depth;
+		}
+
+		public boolean equals(Object other){
+			Node o = (Node) other;
+			return o.current.equals(this.current);
+		}
+	}
+
+	public List<BoardPosition> getMovementPositions(ChessPiece selectedPiece){
+		if(selectedPiece == null) return new ArrayList<>();
+		Queue<Node> frontier = new LinkedList<>(Arrays.asList(new Node(selectedPiece.getPosition(),0)));
+		List<BoardPosition> explored = new ArrayList<>();
+
+		while(frontier.size() > 0){
+			Node current = frontier.remove();
+			if(current.depth >= selectedPiece.getMoveCount()) break;
+			selectedPiece.getActions(current.current,1)
+					.stream()
+					.filter(pos -> !explored.contains(pos))
+					.filter(pos -> board.isInBounds(pos) && !board.isOccupied(pos))
+					.forEach(pos -> {
+						frontier.add(new Node(pos,current.depth + 1));
+						explored.add(pos);
+					});
+		}
+		explored.remove(selectedPiece.getPosition());
+		return explored;
+	}
+
+	public List<BoardPosition> getCapturePositions(ChessPiece selectedPiece,TeamController enemy){
+		if(selectedPiece == null) return new ArrayList<>();
+
+		return selectedPiece.getActions(selectedPiece.getPosition(),selectedPiece.getCaptureDistance())
+				.stream()
+				.filter(pos -> enemy.getMemberPositions().contains(pos))
+				.collect(Collectors.toList());
+	}
+
 	public void quitGame() {
 		gameOver = true;
 	}
@@ -238,8 +252,8 @@ public class FuzzyChess {
 
 	public void endTurn() {
 		turn = ++turn % 2;
-		subturn = 0;		
-		board.updateBoardColors(getCurrentCorp().getMemberPositions(), null, null);
+		subturn = 0;
+		board.updateBoardColors(getCurrentCorp().getMemberPositions(), new ArrayList<>(), new ArrayList<>());
 		System.out.println("--End Turn");
 	}
 
@@ -247,22 +261,18 @@ public class FuzzyChess {
 		System.out.println("End Subturn");
 		if(++subturn == 3)
 			endTurn();
-		else 
-			board.updateBoardColors(getCurrentCorp().getMemberPositions(), null, null);
+		else
+			board.updateBoardColors(getCurrentCorp().getMemberPositions(), new ArrayList<>(), new ArrayList<>());
 	}
-	
+
 	public ChessPiece getSelectedPiece() {
 		return selectedPiece;
-	}
-	
-	public ChessPiece getSelectedEnemyPiece() {
-		return selectedEnemy;
 	}
 
 	public GameBoard getBoard() {
 		return board;
 	}
-	
+
 	public int getLastRoll() {
 		return lastRoll;
 	}
@@ -274,28 +284,34 @@ public class FuzzyChess {
 	public int getSubTurn() {
 		return subturn;
 	}
-	
+
 	public boolean isDiceOffset() {
 		return diceOffset;
 	}
-	
+
 	public void toggleDevMode() {
 		devMode = !devMode;
 	}
-	
+
 	public boolean isDevMode() {
 		return devMode;
 	}
-	
+
 	public String getCaptureResult() {
 		return captureResult;
 	}
 
 	public TeamController[] getPlayers(){return players;}
+
 	public TeamController getCurrentPlayer(){
 		return players[getTurn()];
 	}
+
 	public TeamController peekNextPlayer(){
 		return players[(turn + 1) % 2];
+	}
+
+	public ChessPiece getSelectedEnemy(){
+		return selectedEnemy;
 	}
 }

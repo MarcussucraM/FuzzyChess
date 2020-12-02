@@ -13,13 +13,13 @@ public class PlayerController extends TeamController{
             FuzzyChessDisplay display = engine.getDisplay();
 
             if(game.getSelectedPiece() == null) {
-                game.selectPiece(move);
+                game.makeMove(move);
             }
             else{
                 moveMade = game.makeMove(move);
                 //did we select an enemy? - if so - show animation
-                if(game.getSelectedEnemyPiece() != null) {
-                    display.getAttackPanel().update(game.getSelectedPiece().getid(), game.getSelectedEnemyPiece().getid(), game.getCaptureResult());
+                if(game.getSelectedEnemy() != null) {
+                    display.getAttackPanel().update(game.getSelectedPiece().getid(), game.getSelectedEnemy().getid(), game.getCaptureResult());
                     display.getAttackPanel().rollDice(game.getLastRoll());
                     engine.setInAnimation(true);
                     return;
@@ -28,7 +28,7 @@ public class PlayerController extends TeamController{
                     game.endSubturn();
                 }
                 engine.updateDisplay();
-                game.resetSelectedPieces();
+                game.resetSelectedPiece();
 
                 //show win screen
                 if(game.isGameOver()) {

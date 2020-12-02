@@ -16,7 +16,7 @@ public class FuzzyChessEngine implements ActionListener{
 	private FuzzyChessDisplay display;
 	private boolean inAnimation;
 	TeamController player = new PlayerController();
-	TeamController ai = new AiController();
+	TeamController ai = new PlayerController();
 	
 	public FuzzyChessEngine() {
 		SwingUtilities.invokeLater(new Runnable() {
@@ -35,7 +35,7 @@ public class FuzzyChessEngine implements ActionListener{
 		inAnimation = false;
 		game.endSubturn();
 		updateDisplay();
-		game.resetSelectedPieces();
+		game.resetSelectedPiece();
 		
 		//show win screen
 		if(game.isGameOver()) {
@@ -52,11 +52,9 @@ public class FuzzyChessEngine implements ActionListener{
 		//board
 		display.getGamePanel().updateBoard(game.getBoard().getBoardState(), game.getBoard().getBoardColors());
 		//captures
-		display.getCapturePanel1().update(game.getPlayers()[0].getCaptures());
-		display.getCapturePanel2().update(game.getPlayers()[1].getCaptures());
 		//attack
 		char attackerID = game.getSelectedPiece() == null ? 'x' : game.getSelectedPiece().getid();
-		char defenderID = game.getSelectedEnemyPiece() == null ? 'x' : game.getSelectedEnemyPiece().getid();
+		char defenderID = game.getSelectedEnemy() == null ? 'x' : game.getSelectedEnemy().getid();
 		display.getAttackPanel().update(attackerID, defenderID, game.getCaptureResult());
 		//menu
 		display.getDevModeMenuItem().setSelected(game.isDevMode());
@@ -110,7 +108,7 @@ public class FuzzyChessEngine implements ActionListener{
 		else if(e.getSource() == display.getStatusPanel().getEndTurnButton()) {
 			if(!inAnimation) {
 				game.endTurn();
-				game.resetSelectedPieces();
+				game.resetSelectedPiece();
 				updateDisplay();
 			}
 		}

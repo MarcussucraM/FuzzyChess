@@ -14,6 +14,16 @@ public class AiController extends TeamController{
 
 	@Override
 	public void makeMove(FuzzyChessEngine engine, BoardPosition placeholder) {
+		/*
+		Need to implement an overall goal to the program, the idea of being able to capture the king. There needs to be a percent win possibility for the AI,
+		this percent win possibility will be a new calculation that will take up extra space. Instead of a best node we will now pick a GameBoard with the best win possibility, which will take into account
+		different scoring systems
+		*/
+
+
+
+
+
 		game = engine.getGame();
 		board = game.getBoard();
 		FuzzyChessDisplay display = engine.getDisplay();
@@ -24,7 +34,7 @@ public class AiController extends TeamController{
 			Node current = new Node(member,board);
 			possible_moves.add(current);
 
-			for(BoardPosition movement : board.getMovementPositions(member)){
+			/*for(BoardPosition movement : board.getMovementPositions(member)){
 				GameBoard copy = board.copy();
 				copy.updateBoardState(member.getPosition(),movement);
 				possible_moves.add(new Node(member,copy,movement,current));
@@ -39,6 +49,7 @@ public class AiController extends TeamController{
 					}
 				}
 			}
+			*/
 		}
 
 		Node best_node = null;
@@ -46,7 +57,6 @@ public class AiController extends TeamController{
 			move.score += getDefendingScore(move);
 			move.score += getAttackedScore(move);
 			move.score += getMoveScore(move);
-
 
 			if(best_node == null || move.score > best_node.score){
 				best_node = move;
@@ -58,12 +68,12 @@ public class AiController extends TeamController{
 
 		System.out.println("BEST NODE: " + best_node.score);
 		if(best_node.parent != null){
-			game.selectPiece(best_node.parent.position);
+			game.makeMove(best_node.parent.position);
 			game.makeMove(best_node.position);
 
 
-			if(game.getSelectedEnemyPiece() != null) {
-				display.getAttackPanel().update(game.getSelectedPiece().getid(), game.getSelectedEnemyPiece().getid(), game.getCaptureResult());
+			if(game.getSelectedEnemy() != null) {
+				display.getAttackPanel().update(game.getSelectedPiece().getid(), game.getSelectedEnemy().getid(), game.getCaptureResult());
 				display.getAttackPanel().rollDice(game.getLastRoll());
 				engine.setInAnimation(true);
 				return;
@@ -75,7 +85,7 @@ public class AiController extends TeamController{
 		}
 
 		engine.updateDisplay();
-		game.resetSelectedPieces();
+		game.resetSelectedPiece();
 
 		if(game.isGameOver()) {
 			System.out.println("Game Over");
@@ -87,37 +97,25 @@ public class AiController extends TeamController{
 	//Positive score that tries and get the pieces to move forward
 	private double getMoveScore(Node move){
 		if(Math.random() < .6 || move.parent == null) return 0;
-		return Math.random() * move.position.distance(move.parent.position) * (1/move.current_piece.getImportance());
+		return Math.random() * (move.position.distance(move.parent.position) * (1/move.current_piece.getImportance()));
 	}
 
 	private double getAttackedScore(Node move){
 		List<BoardPosition> enemy_capture_positions = new ArrayList<BoardPosition>();
 		for(Corp corps : game.peekNextPlayer().getCorps()){
 			for(ChessPiece enemy : corps.getMembers()){
+				/*
 				if(move.game_state.getCapturePositions(enemy,this.getCorps()).contains(move.position)){
 					return Math.random() * (-2 * move.current_piece.getImportance());
 				}
+				 */
 			}
 		}
 		return 0;
 	}
 
 	private double getDefendingScore(Node move){
-		//Check all enemies that can attack allies
-		//Check if I can attack current position
-		List<Node> friendly_deaths = new ArrayList<>();
-
-		for(Corp corp : game.peekNextPlayer().getCorps()){
-			for(ChessPiece enemy : corp.getMembers()){
-				for(BoardPosition friendly_death : move.game_state.getCapturePositions(enemy,this.getCorps())){
-					GameBoard copy = board.copy();
-					copy.updateBoardState(enemy.getPosition(),friendly_death);
-					friendly_deaths.add(new Node(move.current_piece,copy,move.position,move));
-				}
-			}
-		}
-
-		return (Math.random() * friendly_deaths.size());
+		return 0;
 	}
 	private double getAttackScore(ChessPiece item,ChessPiece enemy){
 		if(Math.random() < .5) return 0;
