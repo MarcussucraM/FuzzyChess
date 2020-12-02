@@ -69,7 +69,7 @@ public class FuzzyChessConsoleEngine {
 					int x = Integer.parseInt(inputs[0]);
 					int y = Integer.parseInt(inputs[1]);
 					BoardPosition selectedPosition = new BoardPosition(x, y);
-					if(game.makeMove(selectedPosition)) {
+					if(game.selectPiece(selectedPosition)) {
 						System.out.println(String.format("Selected %s", game.getSelectedPiece()));
 						FuzzyChessConsoleDisplay.displayTurn(game.getTurn(), game.getSubTurn(), game.getBoard().toString());
 						
@@ -86,10 +86,10 @@ public class FuzzyChessConsoleEngine {
 						if(game.makeMove(selectedPosition)) {
 							//if theres a selected enemy piece then a capture happened
 							//display all the stats
-							if(game.getSelectedEnemy() != null) {
-								FuzzyChessConsoleDisplay.displayAttack(game.getSelectedPiece().toString(), game.getSelectedEnemy().toString(),
+							if(game.getSelectedEnemyPiece() != null) {
+								FuzzyChessConsoleDisplay.displayAttack(game.getSelectedPiece().toString(), game.getSelectedEnemyPiece().toString(),
 										game.getLastRoll(), game.isDiceOffset(), game.getCaptureResult(), 
-										game.getSelectedPiece().getRolls(game.getSelectedEnemy()));
+										game.getSelectedPiece().getRolls(game.getSelectedEnemyPiece()));
 							}
 							game.endSubturn();
 						}

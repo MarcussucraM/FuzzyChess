@@ -16,10 +16,6 @@ public class BoardPosition {
 		int resY = Math.floorDiv(screenY-OFFSET, TILE_SIZE);
 		return new BoardPosition(resX, resY);
 	}
-
-	public BoardPosition add(int x,int y){
-		return new BoardPosition(this.x + x,this.y + y);
-	}
 	
 	public int getX() {
 		return x;
@@ -40,6 +36,7 @@ public class BoardPosition {
 	public int distance(BoardPosition destination) {
 		return (int)(Math.sqrt(Math.pow((destination.getX() - x), 2) + Math.pow((destination.getY() - y), 2)));
 	}
+	
 	public BoardPosition copy() {
 		return new BoardPosition(x,y);
 	}

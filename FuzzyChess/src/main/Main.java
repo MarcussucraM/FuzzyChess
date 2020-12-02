@@ -11,7 +11,6 @@ public class Main {
 		engine.run();*/
 		
 		FuzzyChessEngine engine = new FuzzyChessEngine();
-
 	}
 
 }

@@ -1,7 +1,6 @@
 package models;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class ChessPiece {
 	private BoardPosition position;
@@ -35,10 +34,10 @@ public class ChessPiece {
 				return 1.3;
 			case 'q':
 			case 'Q':
-				return 3;
+				return 2;
 			case 'k':
 			case 'K':
-				return 5;
+				return 3;
 			default:
 				return 1;
 		}
@@ -77,37 +76,28 @@ public class ChessPiece {
 	
 	private int convertIDtoArrayPosition() {
 		switch(id) {
-			case 'k':
-			case 'K':
-				return 0;
-			case 'q':
-			case 'Q':
-				return 1;
-			case 'n':
-			case 'N':
-				return 2;
-			case 'b':
-			case 'B':
-				return 3;
-			case 'r':
-			case 'R':
-				return 4;
-			case 'p':
-			case 'P':
-				return 5;
-			default:
-				return 0;
+		case 'k':
+		case 'K':
+			return 0;
+		case 'q':
+		case 'Q':
+			return 1;
+		case 'n':
+		case 'N':
+			return 2;
+		case 'b':
+		case 'B':
+			return 3;
+		case 'r':
+		case 'R':
+			return 4;
+		case 'p':
+		case 'P':
+			return 5;
+		default:
+			return 0;	
 		}
-	}
-	public List<BoardPosition> getActions(BoardPosition position,int radius) {
-		List<BoardPosition> possibleActions = new ArrayList<BoardPosition>();
-
-		for(int y = (radius * direction); Math.abs(y) <= Math.abs(direction * radius); y -= direction){
-			for(int x = -radius; x <= radius; x++)
-				possibleActions.add(position.add(x,y));
-			if(id == 'p' || id == 'P') return possibleActions;
-		}
-		return possibleActions;
+			
 	}
 	
 	public char getid() {
@@ -129,7 +119,38 @@ public class ChessPiece {
 	public int[] getRolls(ChessPiece other) {
 		return rolls[convertIDtoArrayPosition()][other.convertIDtoArrayPosition()];
 	}
+	
+	
+	//returns possible locations a piece may step to
+	//disregards if there is a piece in that location
+	//or if its out of bounds - just the possibilities
+	//the rest is checked later
+	public ArrayList<BoardPosition> getActions() {
+		int startX = position.getX();
+		int startY = position.getY();
+		ArrayList<BoardPosition> possibleActions = new ArrayList<BoardPosition>();
 
+		//pawn movements - only able to move forward and forward diagonal
+		possibleActions.add(new BoardPosition(startX, startY + direction));
+		possibleActions.add(new BoardPosition(startX + 1, startY + direction));
+		possibleActions.add(new BoardPosition(startX - 1, startY + direction));
+		
+		//if its a pawn - end here
+		if(id == 'p' || id == 'P') return possibleActions;
+
+		//rest of piece movements
+		//backward and back diagonal
+		possibleActions.add(new BoardPosition(startX, startY - direction));
+		possibleActions.add(new BoardPosition(startX + 1, startY - direction));
+		possibleActions.add(new BoardPosition(startX - 1, startY - direction));
+		
+		//left and right
+		possibleActions.add(new BoardPosition(startX + 1, startY));
+		possibleActions.add(new BoardPosition(startX - 1, startY));
+		
+		return possibleActions;
+	}
+	
 	//returns number of steps a piece can move
 	public int getMoveCount() {
 		switch(id) {
@@ -150,15 +171,6 @@ public class ChessPiece {
 				return 5;
 			default:
 				return 0;
-		}
-	}
-	public int getCaptureDistance(){
-		switch (id){
-			case 'r':
-			case 'R':
-				return 3;
-			default:
-				return  1;
 		}
 	}
 	

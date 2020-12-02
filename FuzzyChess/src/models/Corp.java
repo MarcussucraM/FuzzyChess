@@ -1,7 +1,6 @@
 package models;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /* Structure that contains members and leader of corp
  * Leaders: Left Bishop, Right Bishop, King
@@ -17,8 +16,8 @@ import java.util.List;
 
 //update getMemberAt
 
-public class Corp implements CorpControls{
-	private List<ChessPiece> members;
+public class Corp {
+	private ArrayList<ChessPiece> members;
 	private ChessPiece leader;
 	private Corp kingsCorp;
 	private boolean isActive;
@@ -62,8 +61,8 @@ public class Corp implements CorpControls{
 	}
 	
 	//redo - currently returns reference to all members
-	public List<ChessPiece> getMembers() {
-		List<ChessPiece> totalMembers = new ArrayList<ChessPiece>();
+	public ArrayList<ChessPiece> getMembers() {
+		ArrayList<ChessPiece> totalMembers = new ArrayList<ChessPiece>();
 		totalMembers.addAll(members);
 		//if null then this is the kings corp
 		//otherwise king delegates all members besides himself to bishops
@@ -74,8 +73,8 @@ public class Corp implements CorpControls{
 		return totalMembers;			
 	}
 	
-	public List<BoardPosition> getMemberPositions(){
-		List<BoardPosition> memberPositions = new ArrayList<BoardPosition>();
+	public ArrayList<BoardPosition> getMemberPositions(){
+		ArrayList<BoardPosition> memberPositions = new ArrayList<BoardPosition>();
 		for(ChessPiece member : getMembers()) {
 			memberPositions.add(member.getPosition());
 		}
