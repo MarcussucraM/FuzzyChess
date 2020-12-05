@@ -122,6 +122,8 @@ public class FuzzyChessDisplay {
 			display.revalidate();
 			helpScreen = null;
 		}
+		attackPanel.stopThinkingAnimation();
+		attackPanel.stopRollingAnimation();
 		display.getContentPane().add(gamePanel);
 		display.validate();
 		statusPanel.getEndTurnButton().setEnabled(true);

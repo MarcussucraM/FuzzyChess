@@ -118,8 +118,17 @@ public class AttackPanel extends JPanel implements Runnable{
 	}
 	
 	public void stopThinkingAnimation() {
-		thinkingAnimator.stop();
-		thinkingAnimator = null;
+		if(thinkingAnimator != null) {
+			thinkingAnimator.stop();
+			thinkingAnimator = null;
+		}
+	}
+	
+	public void stopRollingAnimation() {
+		if(diceRoller != null) {
+			diceRoller.interrupt();
+			diceRoller = null;
+		}
 	}
 	
 	public void update(char attackerID, char defenderID) {

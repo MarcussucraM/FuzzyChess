@@ -5,7 +5,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 
 public class TrigSpark implements Spark {
-    public double MAX_SPEED = 10;
+    public double MAX_SPEED = 5;
     public double ACCELERATION;
 
     private final int MAX_RADIUS = 10;

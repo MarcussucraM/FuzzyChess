@@ -39,7 +39,7 @@ public class Fireworks {
         int sparkCount = 50 + generator.nextInt(20);
         int grey = generator.nextInt(100) + 155;
         Color c = new Color(grey,grey,grey);
-        long lifespan = 500 + generator.nextInt(500);
+        long lifespan = 1000;
 
         int choice = generator.nextInt(100);
 

@@ -24,6 +24,7 @@ public class FuzzyChessAgent implements Runnable {
 	private int currentMoveIndex;
 	
 	private Thread aiWorker;
+	private boolean wasInterupted;
 	
 	//pawns really just need to move 1 space up so the back pieces can move
 	private double[][] blkPawnBoardPositionValues = {{0,0,0,0,0,0,0,0},
@@ -142,6 +143,12 @@ public class FuzzyChessAgent implements Runnable {
 		}
 	}
 	
+	public void flagEval() {
+		if(aiWorker != null) {
+			wasInterupted = true;
+		}
+	}
+	
 	//looks at available pieces per subturn and picks one randomly - if they aren't able to move 
 	//or capture anything then it picks another randomly
 	//then it moves to a random space or captures a random enemy
@@ -157,11 +164,11 @@ public class FuzzyChessAgent implements Runnable {
 				selectedPosition = availablePieces.get((int)(Math.random() * 100) % availablePieces.size());
 				environment.selectPiece(selectedPosition);
 				//need to make sure it can actually move/capture
-				//System.out.println("Selected Piece " + environment.getSelectedPiece());
+				System.out.println("Selected Piece " + environment.getSelectedPiece());
 				availableMoves = environment.getAllMoves();
 				//bug here perchance
 				if(availableMoves.size() > 0) { //make a move
-					//System.out.println(availableMoves);
+					System.out.println(availableMoves);
 					moveToPosition = availableMoves.get((int)(Math.random() * 100) % availableMoves.size());
 					if(environment.makeMove(moveToPosition)) {
 						environment.endSubturn();
@@ -174,8 +181,8 @@ public class FuzzyChessAgent implements Runnable {
 			randomMoves.add(selectedPosition);
 			randomMoves.add(moveToPosition);
 		}
-		//System.out.println("Moves to be made...");
-		//System.out.println(randomMoves);
+		System.out.println("Moves to be made...");
+		System.out.println(randomMoves);
 		return randomMoves;
 	}
 	
@@ -225,7 +232,6 @@ public class FuzzyChessAgent implements Runnable {
 	//this is really ugly but maybe it works....
 	private ArrayList<ArrayList<BoardPosition>> generateTopMoves(FuzzyChess state, int factor){
 		int topX = factor;
-		//System.out.println(factor);
 		ArrayList<ArrayList<BoardPosition>> topMoves = new ArrayList<ArrayList<BoardPosition>>();
 		ArrayList<BoardPosition[]> topSubTurn1Moves = topXMoves(state, topX);
 		
@@ -385,7 +391,6 @@ public class FuzzyChessAgent implements Runnable {
 					}
 					if(ChessPiece.isBlack(pieceID)) {
 						if(boardState[i][j] == 'R') {
-							//System.out.println("ROOK IN RANGE");
 							resultScore -= getPieceScore(boardState[i][j]) * 3;
 						}
 					}
@@ -591,6 +596,8 @@ public class FuzzyChessAgent implements Runnable {
 			moves = makeLevel0Moves(currentState);
 		}
 		aiWorker = null;
-		engine.aiReadyCallBack();
+		if(!wasInterupted)
+			engine.aiReadyCallBack();
+		wasInterupted = false;
 	}
 }

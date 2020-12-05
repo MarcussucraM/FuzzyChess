@@ -87,7 +87,7 @@ public class GameOverPanel extends JPanel implements ActionListener {
 		g2d.setColor(Color.WHITE);
 		g2d.setFont(new Font("TimesRoman", Font.PLAIN, 45));
 		if(!win) {
-			g2d.drawString("YOU LOSE", (int)clip.getWidth()/2-100, (int)clip.getHeight()/2);
+			g2d.drawString("fin", (int)clip.getWidth()/2-100, (int)clip.getHeight()/2);
 		} else {
 			g2d.drawString("YOU WIN!", (int)clip.getWidth()/2-100, (int)clip.getHeight()/2);
 		}

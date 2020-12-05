@@ -63,7 +63,7 @@ public class FuzzyChessEngine implements ActionListener{
 	
 	//not sure if I want this to be a thread or naw
 	public void startAITurn() {
-		System.out.println("AI THINKING....");
+		//System.out.println("AI THINKING....");
 		display.getAttackPanel().setText("The enemy commanders are plotting your demise");
 		display.getAttackPanel().startThinkingAnimation();
 		ai.evaluateTurn(game.copy());
@@ -216,6 +216,12 @@ public class FuzzyChessEngine implements ActionListener{
 	}
 	
 	public void newGame(int difficulty) {
+		ai.flagEval();
+		if(aiMoveTimer != null) {
+			aiMoveTimer.stop();
+		}
+		aiTurn = false;
+		inAnimation = false;
 		game = new FuzzyChess();
 		ai = new FuzzyChessAgent(this, difficulty);
 		display.reset();
