@@ -70,19 +70,27 @@ public class FuzzyChessEngine implements ActionListener{
 	}
 	
 	public void startRollAnimation() {
-		String rollsNeeded = "Rolls Needed To Capture (";
-		int lastRoll = game.getLastRoll();
-		int[] rolls = game.getSelectedPiece().getRolls(game.getSelectedEnemyPiece());
-		for(int i = 0; i < rolls.length; i++) {
-			if(i != rolls.length-1)
-				rollsNeeded += rolls[i] + ", ";
-			else
-				rollsNeeded += rolls[i];
+		if(game.areRollsDisabled()) {
+			display.getAttackPanel().update(game.getSelectedPiece().getid(), game.getSelectedEnemyPiece().getid());
+			game.endSubturn();
+			updateDisplay();
+			game.resetSelectedPieces();
 		}
-		rollsNeeded += ")";
-		display.getAttackPanel().update(game.getSelectedPiece().getid(), game.getSelectedEnemyPiece().getid());
-		display.getAttackPanel().rollDice(lastRoll, rollsNeeded, game.getCaptureResult());
-		inAnimation = true;	
+		else {
+			String rollsNeeded = "Rolls Needed To Capture (";
+			int lastRoll = game.getLastRoll();
+			int[] rolls = game.getSelectedPiece().getRolls(game.getSelectedEnemyPiece());
+			for(int i = 0; i < rolls.length; i++) {
+				if(i != rolls.length-1)
+					rollsNeeded += rolls[i] + ", ";
+				else
+					rollsNeeded += rolls[i];
+			}
+			rollsNeeded += ")";
+			display.getAttackPanel().update(game.getSelectedPiece().getid(), game.getSelectedEnemyPiece().getid());
+			display.getAttackPanel().rollDice(lastRoll, rollsNeeded, game.getCaptureResult());
+			inAnimation = true;	
+		}
 	}
 	
 	public void endSubTurn() {
@@ -137,7 +145,7 @@ public class FuzzyChessEngine implements ActionListener{
 		char defenderID = game.getSelectedEnemyPiece() == null ? 'x' : game.getSelectedEnemyPiece().getid();
 		display.getAttackPanel().update(attackerID, defenderID);
 		//menu
-		display.getDevModeMenuItem().setSelected(game.isDevMode());
+		display.getDisableRollsMenuItem().setSelected(game.areRollsDisabled());
 		//endgame
 		if(game.isGameOver()) {
 			if(aiMoveTimer.isRunning()) {
@@ -160,7 +168,7 @@ public class FuzzyChessEngine implements ActionListener{
 		display.getEasyMenuItem().addActionListener(this);
 		display.getMedMenuItem().addActionListener(this);
 		display.getHardMenuItem().addActionListener(this);
-		display.getDevModeMenuItem().addActionListener(this);
+		display.getDisableRollsMenuItem().addActionListener(this);
 		display.getHowToPlayMenuItem().addActionListener(this);
 		display.getStatusPanel().getEndTurnButton().addActionListener(this);
 		display.getStatusPanel().getEndSubTurnButton().addActionListener(this);
@@ -195,8 +203,8 @@ public class FuzzyChessEngine implements ActionListener{
 		else if(e.getSource() == display.getHowToPlayMenuItem()) {
 			display.displayHelpScreen();
 		}
-		else if(e.getSource() == display.getDevModeMenuItem()) {
-			game.toggleDevMode();
+		else if(e.getSource() == display.getDisableRollsMenuItem()) {
+			game.toggleRollsDisabled();
 		}
 		else if(e.getSource() == aiMoveTimer) {
 			if(!inAnimation) {

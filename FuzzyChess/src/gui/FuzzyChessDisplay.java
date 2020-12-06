@@ -17,7 +17,7 @@ public class FuzzyChessDisplay {
 	private RulesPanel helpScreen;
 
 	private JMenuItem howToPlayMenuItem;
-	private JCheckBoxMenuItem devModeMenuItem;
+	private JCheckBoxMenuItem disableRollsMenuItem;
 	private JMenuItem hardMenuItem;
 	private JMenuItem medMenuItem;
 	private JMenuItem easyMenuItem;
@@ -62,8 +62,7 @@ public class FuzzyChessDisplay {
 		hardMenuItem = new JMenuItem("Hard");
 		
 		howToPlayMenuItem = new JMenuItem("How to Play");
-		//will enable user to ignore game rules to test game functions - like win state/etc
-		devModeMenuItem = new JCheckBoxMenuItem("Developer Mode"); 
+		disableRollsMenuItem = new JCheckBoxMenuItem("Disable Rolls"); 
 		
 		game.add(newGame);
 		newGame.add(veryEasyMenuItem);
@@ -72,7 +71,7 @@ public class FuzzyChessDisplay {
 		newGame.add(hardMenuItem);
 		
 		game.add(howToPlayMenuItem);
-		game.add(devModeMenuItem);
+		game.add(disableRollsMenuItem);
 		menubar.add(game);
 		display.setJMenuBar(menubar);
 	}
@@ -171,8 +170,8 @@ public class FuzzyChessDisplay {
 		return howToPlayMenuItem;
 	}
 
-	public JMenuItem getDevModeMenuItem() {
-		return devModeMenuItem;
+	public JMenuItem getDisableRollsMenuItem() {
+		return disableRollsMenuItem;
 	}
 	
 	//set theme/look and feel of the game

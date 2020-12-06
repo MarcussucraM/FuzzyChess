@@ -360,14 +360,18 @@ public class FuzzyChessAgent implements Runnable {
 	
 	public double evaluateGameState(FuzzyChess state) {
 		double boardPositions = evaluateBoardPositions(state);
-		double chance = evaluateChanceOfCapture(state);
 		double leaderPositions = evaluateLeaderPositions(state);
 		double centerControl = evaluateCenterControl(state);
 		double safety = evaluateMovedPieceSafety(state);
 		//System.out.println("leader positions" + leaderPositions);
-		double evaluation = (boardPositions + leaderPositions + centerControl + safety) * chance;
-		//System.out.println("Total evaluatation: " + evaluation);
-		return evaluation;
+		if(state.areRollsDisabled()) {
+			return boardPositions + leaderPositions + centerControl + safety;
+		}
+		//if rolls enabled - make sure to mult by chance
+		else {
+			double chance = evaluateChanceOfCapture(state);
+			return (boardPositions + leaderPositions + centerControl + safety) * chance;
+		}
 	}
 	
 	private double evaluateSurroundings(FuzzyChess state, char pieceID, BoardPosition piecePosition) {
@@ -559,6 +563,8 @@ public class FuzzyChessAgent implements Runnable {
 			return 10;
 		case 'n':
 		case 'N':
+			if(engine.getGame().areRollsDisabled())
+				return 200; //because op
 			return 50;
 		case 'q':
 		case 'Q':

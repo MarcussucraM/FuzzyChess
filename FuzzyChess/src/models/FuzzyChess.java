@@ -46,7 +46,7 @@ public class FuzzyChess {
 	private String captureResult;
 	
 	//if enabled - all rolls = 6
-	private boolean devMode;
+	private boolean rollsDisabled;
 
 	public FuzzyChess() {
 		gameOver = false;
@@ -63,14 +63,14 @@ public class FuzzyChess {
 		dice = new Random();
 		dice.setSeed((long)Math.random() * 100000);
 		captureResult = "";
-		devMode = false;
+		rollsDisabled = false;
 		board.updateBoardColors(getCurrentCorp().getActiveMemberPositions(), null, null, null, null);
 	}
 	
 	//for copying
 	private FuzzyChess(ChessPiece selCopy, ChessPiece selEnemy,
 			ArrayList<Corp> copiedP1Corps, ArrayList<Corp> copiedP2Corps, GameBoard copiedBoard,
-			ArrayList<BoardPosition> pm, ArrayList<BoardPosition> pc, int t, int st) {
+			ArrayList<BoardPosition> pm, ArrayList<BoardPosition> pc, int t, int st, boolean rollsDisabled) {
 		gameOver = false;
 		board = copiedBoard;
 		p1_corps = copiedP1Corps;
@@ -88,7 +88,7 @@ public class FuzzyChess {
 		dice = new Random();
 		dice.setSeed((long)Math.random() * 100000);
 		captureResult = "";
-		devMode = false;
+		this.rollsDisabled = rollsDisabled;
 		board.updateBoardColors(getCurrentCorp().getActiveMemberPositions(), null, null, null, null);
 	}
 
@@ -412,7 +412,7 @@ public class FuzzyChess {
 	}	
 	
 	//update to add roll offset for knight
-	private boolean capturePiece() {
+	private boolean capturePiece() {		
 		int[] neededRolls = selectedPiece.getRolls(selectedEnemy);
 		lastRoll = (int)((Math.random() * 100) % 6) + 1;
 		
@@ -426,15 +426,10 @@ public class FuzzyChess {
 			}
 		}
 		
-		if(devMode)
-			lastRoll = 6;
-		
 		for(int x = 0; x < neededRolls.length; x++) {
-			if(neededRolls[x] == lastRoll) {
+			if(rollsDisabled || neededRolls[x] == lastRoll) {
 				captureResult = "Capture Success!";
-				System.out.println("before capture" + currentEnemyCorp.toString());
 				currentEnemyCorp.removeMember(selectedEnemy);
-				System.out.println("after capture" + currentEnemyCorp.toString()); //should be empty
 				if(turn == 0)
 					p1_captures.add(selectedEnemy);
 				else 
@@ -533,12 +528,12 @@ public class FuzzyChess {
 		return diceOffset;
 	}
 	
-	public void toggleDevMode() {
-		devMode = !devMode;
+	public void toggleRollsDisabled() {
+		rollsDisabled = !rollsDisabled;
 	}
 	
-	public boolean isDevMode() {
-		return devMode;
+	public boolean areRollsDisabled() {
+		return rollsDisabled;
 	}
 	
 	public String getCaptureResult() {
@@ -578,7 +573,7 @@ public class FuzzyChess {
 			}
 		}
 		GameBoard copiedBoard = board.copy();
-		return new FuzzyChess(selCopy, selEnemy, copied_P1Corps, copied_P2Corps, copiedBoard, possibleMoves, possibleCaptures, turn, subturn);
+		return new FuzzyChess(selCopy, selEnemy, copied_P1Corps, copied_P2Corps, copiedBoard, possibleMoves, possibleCaptures, turn, subturn, rollsDisabled);
 	}
 	
 	public String toString() {
