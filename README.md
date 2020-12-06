@@ -1,5 +1,8 @@
 # FuzzyChess
 Senior Capstone Project for Kennesaw State University
+To Play :
+Download FuzzyChessGame Folder which contains FuzzyChess.jar and a resources folder
+launch the game from the .jar file once it's downloaded and enjoy!
 
 TODO: (as of 12/06/2020)
 
