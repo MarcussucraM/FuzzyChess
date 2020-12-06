@@ -80,11 +80,7 @@ public class FuzzyChessDisplay {
 		if(gamePanel != null) {
 			display.getContentPane().remove(gamePanel);
 			display.revalidate();
-		} if(winScreen != null) {
-			display.getContentPane().remove(winScreen);
-			display.revalidate();
-			winScreen = null;
-		}
+		} 
 		helpScreen = new RulesPanel(this);
 		helpScreen.setResources(resources);
 		display.add(helpScreen, BorderLayout.CENTER);
@@ -107,6 +103,7 @@ public class FuzzyChessDisplay {
 			
 			statusPanel.getEndTurnButton().setEnabled(false);
 			statusPanel.getEndSubTurnButton().setEnabled(false);
+			howToPlayMenuItem.setEnabled(false);
 		}
 	}
 	
@@ -127,6 +124,7 @@ public class FuzzyChessDisplay {
 		display.validate();
 		statusPanel.getEndTurnButton().setEnabled(true);
 		statusPanel.getEndSubTurnButton().setEnabled(true);
+		howToPlayMenuItem.setEnabled(true);
 		display.repaint();
 	}
 	

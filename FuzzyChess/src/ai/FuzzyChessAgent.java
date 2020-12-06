@@ -191,15 +191,14 @@ public class FuzzyChessAgent implements Runnable {
 		return generateTopMoves(state, 1).get(0);
 	}
 	
-	private ArrayList<BoardPosition> makeLevel2Moves(FuzzyChess state, int depth, boolean isMax){
+	private ArrayList<BoardPosition> makeLevel2Moves(FuzzyChess state, int depth, boolean isMax, int topX){
 		ArrayList<BoardPosition> level2Moves = new ArrayList<BoardPosition>();
-		int topX = 3;
 		ArrayList<ArrayList<BoardPosition>> moves = generateTopMoves(state, topX);
 
 		double bestScore = 99999;
 		for(int i = 0; i < moves.size(); i++) {
 			FuzzyChess nextState = doTurn(state.copy(), moves.get(i));
-			double score = minimax(nextState, depth-1, -99999, 99999, !isMax);
+			double score = minimax(nextState, depth-1, -99999, 99999, !isMax, topX);
 			if(score < bestScore) {
 				bestScore = score;
 				level2Moves = moves.get(i);
@@ -327,17 +326,16 @@ public class FuzzyChessAgent implements Runnable {
 	
 
 	
-	private double minimax(FuzzyChess state, int depth, double alpha, double beta, boolean isMax) {
-		int topX = 3;
+	private double minimax(FuzzyChess state, int depth, double alpha, double beta, boolean isMax, int topX) {
 		if(depth == 0) {
-			return evaluateGameState(state);
+			return -evaluateGameState(state);
 		}
 		ArrayList<ArrayList<BoardPosition>> moves = generateTopMoves(state, topX);
 		if(isMax) {
 			double bestScore = -99999;
 			for(int i = 0; i < moves.size(); i++) {
 				FuzzyChess nextState = doTurn(state.copy(), moves.get(i));
-				bestScore = Math.max(bestScore, minimax(nextState, depth-1, alpha, beta, !isMax));
+				bestScore = Math.max(bestScore, minimax(nextState, depth-1, alpha, beta, !isMax, topX));
 				alpha = Math.max(alpha, bestScore);
 				if(alpha >= beta) 
 					return bestScore;
@@ -348,7 +346,7 @@ public class FuzzyChessAgent implements Runnable {
 			double bestScore = 99999;
 			for(int i = 0; i < moves.size(); i++) {
 				FuzzyChess nextState = doTurn(state.copy(), moves.get(i));
-				bestScore = Math.min(bestScore, minimax(nextState, depth-1, alpha, beta, !isMax));
+				bestScore = Math.min(bestScore, minimax(nextState, depth-1, alpha, beta, !isMax, topX));
 				beta = Math.min(beta, bestScore);
 				if(beta <= alpha)
 					return bestScore;
@@ -593,10 +591,10 @@ public class FuzzyChessAgent implements Runnable {
 			moves = makeLevel1Moves(currentState); //just use eval functions
 			break;
 		case 2:
-			moves = makeLevel2Moves(currentState, 3, false); //use minimax
+			moves = makeLevel2Moves(currentState, 4, false, 2); //use minimax
 			break;
 		case 3:
-			moves = makeLevel2Moves(currentState, 5, false); //use minimax
+			moves = makeLevel2Moves(currentState, 6, false, 2); //use minimax
 			break;
 		default:
 			moves = makeLevel0Moves(currentState);
